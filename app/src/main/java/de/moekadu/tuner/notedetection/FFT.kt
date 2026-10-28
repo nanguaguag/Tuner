@@ -211,6 +211,10 @@ class RealFFT(val size : Int, private val windowType : WindowingFunction = Windo
             output[k2im] = -frIm + sin2 * grRe - cos2 * grIm
         }
 
+        if (halfSize % 2 == 0) {
+            output[halfSize + 1] = -output[halfSize + 1]
+        }
+
         output[size] = output[0] - output[1]
         output[0] = output[0] + output[1]
         output[1] = 0.0f

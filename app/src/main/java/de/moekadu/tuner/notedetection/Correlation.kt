@@ -80,12 +80,12 @@ class Correlation (val size : Int, val windowType : WindowingFunction = Windowin
     fft.fftBitreversed(spectrumStorage)
 
     // compute amplitudes, we have to be careful here since spectrumStorage and inputBitreversed can be the same storage!
-    val ampMaxFreq = spectrumStorage[1]
+    val ampMaxFreq = spectrumStorage[2 * size]
     inputBitreversed[1] = 0f
     for(i in 0 until size) {
       inputBitreversed[i] = spectrumStorage[2*i].pow(2) + spectrumStorage[2*i+1].pow(2)
     }
-    inputBitreversed[size] = ampMaxFreq
+    inputBitreversed[size] = ampMaxFreq.pow(2)
     // copy amplitudes
     for(i in 1 until size)
       inputBitreversed[size + i] = inputBitreversed[size - i]
@@ -106,7 +106,7 @@ class Correlation (val size : Int, val windowType : WindowingFunction = Windowin
 
     for(i in 0 until size)
       output[i] = inputBitreversed[2*i]
-    output[size] = inputBitreversed[1]
+    output[size] = inputBitreversed[2 * size]
   }
 }
 
