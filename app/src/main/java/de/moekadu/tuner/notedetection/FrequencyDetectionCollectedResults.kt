@@ -110,7 +110,10 @@ class FrequencyDetectionResultCollector(
     private val collectedResultsMemory = MemoryPoolFrequencyDetectionCollectedResults()
     private val spectrumAndCorrelationMemory = MemoryPoolCorrelation()
     private val inharmonicityDetectorMemory = MemoryPoolInharmonicityDetector()
-    private var previousResultsBuffer = Channel<MemoryPool<FrequencyDetectionCollectedResults>.RefCountedMemory>(Channel.CONFLATED)
+    private var previousResultsBuffer = Channel<MemoryPool<FrequencyDetectionCollectedResults>.RefCountedMemory>(
+        capacity = Channel.CONFLATED,
+        onUndeliveredElement = { it.decRef() }
+    )
 
     suspend fun collectResults(sampleData: MemoryPool<SampleData>.RefCountedMemory): MemoryPool<FrequencyDetectionCollectedResults>.RefCountedMemory {
         val collectedResults = collectedResultsMemory.get(sampleData.memory.size, sampleData.memory.sampleRate)

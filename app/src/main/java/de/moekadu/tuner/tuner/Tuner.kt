@@ -200,7 +200,7 @@ class Tuner(
             Channel<MemoryPool<FrequencyDetectionCollectedResults>.RefCountedMemory>(
                 capacity = 2,
                 onBufferOverflow = BufferOverflow.DROP_OLDEST,
-                onUndeliveredElement = { launch { it.decRef() } }
+                onUndeliveredElement = { it.decRef() }
         )
 
         val soundSourceJobAndChannel = launchSoundSourceJob(

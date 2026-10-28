@@ -60,8 +60,9 @@ fun CoroutineScope.launchSoundSourceJob(
     )
 
     val outputChannel = Channel<MemoryPool<SampleData>.RefCountedMemory>(
-        channelCapacity,
-        BufferOverflow.SUSPEND
+        capacity = channelCapacity,
+        onBufferOverflow = BufferOverflow.SUSPEND,
+        onUndeliveredElement = { it.decRef() }
     )
     val memoryPool =
         MemoryPoolSampleData(2 * channelCapacity) // trial shows that single channel capacity does not very well recycle data in extreme cases, double channel capacity seems to work fine

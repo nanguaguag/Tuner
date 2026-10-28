@@ -18,11 +18,9 @@
 */
 package de.moekadu.tuner.misc
 
-import android.util.Log
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import java.util.concurrent.atomic.AtomicInteger
 
 /** Memory pool class, which can be used as a base class for managing specific memory types.
  * This class would normally be wrapped like:
@@ -50,8 +48,7 @@ import kotlinx.coroutines.sync.withLock
 class MemoryPool<T>(capacity: Int = 10)
 {
     inner class RefCountedMemory(val memory: T) {
-        private var refCount = 1
-        private val mutex = Mutex()
+        private val refCount = AtomicInteger(1)
 
         /** Access the underlying memory in a save way.
          * The ref counts are handled by the function itself.
@@ -60,7 +57,7 @@ class MemoryPool<T>(capacity: Int = 10)
          * @return Return value of function or null if the underlying memory is not available
          *   anymore.
          */
-        suspend inline fun <R> with(f: (T) -> R): R? {
+        inline fun <R> with(f: (T) -> R): R? {
             if (!incRef())
                 return null
             val result = f(memory)
@@ -72,23 +69,23 @@ class MemoryPool<T>(capacity: Int = 10)
          * @return True, if we successfully incremented the count. False if the underlying memory
          *   does not exist anymore.
          */
-        suspend fun incRef(): Boolean {
-            return mutex.withLock {
-                if (refCount == 0) {
-                    false
-                } else {
-                    ++refCount
-                    true
+        fun incRef(): Boolean {
+            while (true) {
+                val current = refCount.get()
+                if (current <= 0) {
+                    return false
+                }
+                if (refCount.compareAndSet(current, current + 1)) {
+                    return true
                 }
             }
         }
 
         /** Decrement the reference count. */
-        suspend fun decRef() {
-            mutex.withLock {
-                --refCount
-                if (refCount == 0)
-                    this@MemoryPool.recycle(this)
+        fun decRef() {
+            val remaining = refCount.decrementAndGet()
+            if (remaining == 0) {
+                this@MemoryPool.recycle(this)
             }
         }
     }
@@ -121,7 +118,7 @@ class MemoryPool<T>(capacity: Int = 10)
 
         return if (memory == null) {
             val m = factory()
-            Log.v("Tuner", "MemoryPool.get: Allocating new memory, type: $m")
+            // Log.v("Tuner", "MemoryPool.get: Allocating new memory, type: $m")
             RefCountedMemory(m)
         } else {
 //            Log.v("Tuner", "MemoryPool.get: Recycling memory, type: $memory")
