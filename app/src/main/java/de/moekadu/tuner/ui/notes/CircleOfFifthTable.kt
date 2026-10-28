@@ -58,9 +58,9 @@ import de.moekadu.tuner.ui.theme.TunerTheme
 data class Fifth(
     val startNote: MusicalNote,
     val modification: FifthModification?,
-    val isRoot: Boolean,
-    val drawNoteLight: Boolean,
-    val drawModificationLight: Boolean
+    val isRoot: Boolean = false,
+    val drawNoteLight: Boolean = false,
+    val drawModificationLight: Boolean = false
 )
 //
 @Composable
