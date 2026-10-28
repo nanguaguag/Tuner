@@ -30,6 +30,14 @@ class AccurateSpectrumPeakFrequencyTest {
         }
     }
 
+    @Test
+    fun testPhaseWrappingSymmetry() {
+        val numSamples = 64
+        // test relative shift that produces phase wrapping
+        val resultPositiveShift = testAccuracy(numSamples, 8.2f, 0.45f)
+        Assert.assertTrue(resultPositiveShift.errorHigh < 1f)
+    }
+
     private fun testAccuracy(numSamples: Int, frequencyIndexFloat: Float, relativeShift: Float): AccurateSpectrumPeakFrequencyTestResult {
 
         val timeSeriesDuration = 3.0f

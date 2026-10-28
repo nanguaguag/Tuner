@@ -132,7 +132,7 @@ class FrequencyDetectionResultCollector(
         collectedResults.memory.noise = 1f - collectedResults.memory.autoCorrelation[1] / collectedResults.memory.autoCorrelation[0]
 
         // set time shift for accurate frequencies
-        collectedResults.memory.accuratePeakFrequency.timeShiftBetweenSpecs = if (collectedResults.memory.previousFramePosition == 0)
+        collectedResults.memory.accuratePeakFrequency.timeShiftBetweenSpecs = if (collectedResults.memory.previousFramePosition < 0)
             0f
         else
             collectedResults.memory.timeSeries.dt * (collectedResults.memory.timeSeries.framePosition - collectedResults.memory.previousFramePosition)

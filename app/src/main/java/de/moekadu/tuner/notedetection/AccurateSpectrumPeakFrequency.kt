@@ -60,7 +60,7 @@ class AccurateSpectrumPeakFrequency(
         val phase2 = atan2(spec2.imag(index), spec2.real(index))
 
         var dPhase = phase2 - phase1
-        if (dPhase < PI)
+        if (dPhase < -PI.toFloat())
             dPhase += 2 * PI.toFloat()
         else if (dPhase > PI.toFloat())
             dPhase -= 2 * PI.toFloat()
