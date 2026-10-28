@@ -80,79 +80,102 @@ fun CoroutineScope.launchSoundSourceJob(
                 null
 
         if (record?.state == AudioRecord.STATE_UNINITIALIZED) {
-            Log.v(
+            Log.e(
                 "Tuner",
                 "SoundSource.createAudioRecordJob: Not able to acquire audio resource"
             )
+            outputChannel.close()
+            return@launch
         } else {
-            record?.startRecording()
-            val recordData =
-                if (record != null)
-                    ShortArray(record.bufferSizeInFrames / 2)
-                else
-                    ShortArray(minBufferSize / Short.SIZE_BYTES / 2)
+            try {
+                record?.startRecording()
+                val recordData =
+                    if (record != null)
+                        ShortArray(record.bufferSizeInFrames / 2)
+                    else
+                        ShortArray(minBufferSize / Short.SIZE_BYTES / 2)
 
-            val sampleDataList = ArrayList<MemoryPool<SampleData>.RefCountedMemory>()
-            var nextStartingDataFrame = 0
-            var currentFrame = 0
-            while (true) {
-                if (!isActive)
-                    break
-
-                val numRead = if (testFunction != null) {
-                    for (i in recordData.indices) {
-                        recordData[i] = (Short.MAX_VALUE * testFunction(
-                            currentFrame + i, 1f / sampleRate
-                        )).toInt().toShort()
-                    }
-                    delay((1000 * recordData.size.toFloat() / sampleRate).toLong())
-                    recordData.size
-                } else if (record != null) {
-                    record.read(recordData, 0, recordData.size, AudioRecord.READ_BLOCKING)
-                } else {
-                    0
-                }
-
-                //Log.v("TestRecordFlow", "SoundSource: numRead=$numRead, currentFrame=$currentFrame, windowSize=$windowSize")
-                if (numRead > 0) {
-                    // add empty sampleData objects to the data queue
-                    while (nextStartingDataFrame <= currentFrame + numRead) {
-                        //sampleDataList.add(SampleData(windowSize, sampleRate, nextStartingDataFrame))
-                        sampleDataList.add(
-                            memoryPool.get(
-                                windowSize,
-                                sampleRate,
-                                nextStartingDataFrame
-                            )
-                        )
-                        nextStartingDataFrame += max(
-                            1,
-                            ((1.0 - overlap) * windowSize).roundToInt()
-                        )
-                    }
-                    // Log.v("TestRecordFlow", "SoundSource: sampleDataList.size = ${sampleDataList.size}, nextStartingDataFrame=$nextStartingDataFrame")
-                    sampleDataList
-                        .map { it.apply { memory.addData(currentFrame, recordData) } }
-                        .filter { it.memory.isFull }
-                        .map {
-//                                Log.v("Tuner", "SoundSource: sending sample data at frame: ${it.memory.framePosition}")
-                            //outputChannel.send(it)
-                            val sendStatus = outputChannel.trySend(it)
-                            if (!sendStatus.isSuccess)
-                                it.decRef()
+                val sampleDataList = ArrayList<MemoryPool<SampleData>.RefCountedMemory>()
+                var nextStartingDataFrame = 0
+                var currentFrame = 0
+                while (isActive) {
+                    val numRead = if (testFunction != null) {
+                        for (i in recordData.indices) {
+                            recordData[i] = (Short.MAX_VALUE * testFunction(
+                                currentFrame + i, 1f / sampleRate
+                            )).toInt().toShort()
                         }
-                    sampleDataList.removeAll { it.memory.isFull }
+                        delay((1000 * recordData.size.toFloat() / sampleRate).toLong())
+                        recordData.size
+                    } else if (record != null) {
+                        record.read(recordData, 0, recordData.size, AudioRecord.READ_BLOCKING)
+                    } else {
+                        0
+                    }
 
-                    //for(s in sampleDataList)
-                    //    Log.v("TestRecordFlow", "is full: ${s.isFull}")
+                    if (numRead < 0) {
+                        Log.e("Tuner", "SoundSource: AudioRecord read error: $numRead")
+                        delay(100)
+                        if (!isActive)
+                            break
+                        continue
+                    }
 
-                    currentFrame += numRead
+                    //Log.v("TestRecordFlow", "SoundSource: numRead=$numRead, currentFrame=$currentFrame, windowSize=$windowSize")
+                    if (numRead > 0) {
+                        // add empty sampleData objects to the data queue
+                        while (nextStartingDataFrame <= currentFrame + numRead) {
+                            //sampleDataList.add(SampleData(windowSize, sampleRate, nextStartingDataFrame))
+                            sampleDataList.add(
+                                memoryPool.get(
+                                    windowSize,
+                                    sampleRate,
+                                    nextStartingDataFrame
+                                )
+                            )
+                            nextStartingDataFrame += max(
+                                1,
+                                ((1.0 - overlap) * windowSize).roundToInt()
+                            )
+                        }
+                        // Log.v("TestRecordFlow", "SoundSource: sampleDataList.size = ${sampleDataList.size}, nextStartingDataFrame=$nextStartingDataFrame")
+                        sampleDataList
+                            .map { it.apply { memory.addData(currentFrame, recordData) } }
+                            .filter { it.memory.isFull }
+                            .map {
+//                                Log.v("Tuner", "SoundSource: sending sample data at frame: ${it.memory.framePosition}")
+                                //outputChannel.send(it)
+                                val sendStatus = outputChannel.trySend(it)
+                                if (!sendStatus.isSuccess)
+                                    it.decRef()
+                            }
+                        sampleDataList.removeAll { it.memory.isFull }
 
-                    waveWriter?.appendData(recordData, numRead)
+                        //for(s in sampleDataList)
+                        //    Log.v("TestRecordFlow", "is full: ${s.isFull}")
+
+                        currentFrame += numRead
+
+                        waveWriter?.appendData(recordData, numRead)
+                    }
                 }
+            } catch (e: CancellationException) {
+                // job cancelled
+            } catch (e: Exception) {
+                Log.e("Tuner", "SoundSource: exception in audio recording loop", e)
+            } finally {
+                try {
+                    record?.stop()
+                } catch (e: Exception) {
+                    Log.w("Tuner", "Error stopping AudioRecord", e)
+                }
+                try {
+                    record?.release()
+                } catch (e: Exception) {
+                    Log.w("Tuner", "Error releasing AudioRecord", e)
+                }
+                outputChannel.close()
             }
-            record?.stop()
-            record?.release()
         }
     }
     return SoundSourceJob(outputChannel)
