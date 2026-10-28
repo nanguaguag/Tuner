@@ -626,6 +626,8 @@ fun Harmonics.findBestMatchingHarmonics(
 
 fun computeEnergyContentOfHarmonicsInSignalRelative(harmonics: Harmonics, ampspecSqr: FloatArray, radius: Int = 1): Float {
     val totalEnergy = ampspecSqr.sumOf { it.toDouble() }
+    if (totalEnergy <= 0.0)
+        return 0f
     var harmonicEnergy = 0.0
     for ( i in 0 until harmonics.size) {
         val startIndex = max(0, harmonics[i].spectrumIndex - radius)

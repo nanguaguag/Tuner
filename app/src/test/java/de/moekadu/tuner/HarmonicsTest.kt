@@ -336,4 +336,13 @@ class HarmonicsTest {
         hasCommonDivisor = harmonics.hasCommonDivisors()
         assertFalse(hasCommonDivisor)
     }
+
+    @Test
+    fun computeEnergyContentZeroEnergyReturnsZeroNotNaN() {
+        val harmonics = Harmonics(10)
+        val ampspecSqr = FloatArray(10) { 0f }
+        val relativeEnergy = computeEnergyContentOfHarmonicsInSignalRelative(harmonics, ampspecSqr)
+        assertEquals(0f, relativeEnergy, 0f)
+        assertFalse(relativeEnergy.isNaN())
+    }
 }
