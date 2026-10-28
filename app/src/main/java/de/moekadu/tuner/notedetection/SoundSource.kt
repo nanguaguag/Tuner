@@ -45,7 +45,7 @@ fun CoroutineScope.launchSoundSourceJob(
     overlap: Float = 0.25f,
     windowSize: Int = 4096,
     sampleRate: Int = 44100,
-    testFunction: ((frame: Int, dt: Float) -> Float)? = null,
+    testFunction: ((frame: Long, dt: Float) -> Float)? = null,
     waveWriter: WaveWriter? = null
 ): SoundSourceJob {
     val minBufferSize = AudioRecord.getMinBufferSize(
@@ -96,8 +96,8 @@ fun CoroutineScope.launchSoundSourceJob(
                         ShortArray(minBufferSize / Short.SIZE_BYTES / 2)
 
                 val sampleDataList = ArrayList<MemoryPool<SampleData>.RefCountedMemory>()
-                var nextStartingDataFrame = 0
-                var currentFrame = 0
+                var nextStartingDataFrame = 0L
+                var currentFrame = 0L
                 while (isActive) {
                     val numRead = if (testFunction != null) {
                         for (i in recordData.indices) {

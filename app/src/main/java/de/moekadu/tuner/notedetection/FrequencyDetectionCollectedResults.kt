@@ -45,7 +45,7 @@ class FrequencyDetectionCollectedResults(val sizeOfTimeSeries: Int, val sampleRa
         RealFFT.getFrequency(1, 2 * sizeOfTimeSeries, timeSeries.dt)) // factor 2 since we will zero-pad input
 
     /** Frame position on which the previousSpectrum is based on. -1 if there is not previous spectrum.n*/
-    var previousFramePosition = -1
+    var previousFramePosition = -1L
 
     /** Store the spectrum with complex numbers of the previous evaluation. This is needed
      * for high accuracy frequency computation.
@@ -213,7 +213,7 @@ class FrequencyDetectionResultCollector(
             newResults.previousFramePosition = previousResults.timeSeries.framePosition
             previousResults.frequencySpectrum.spectrum.copyInto(newResults.previousSpectrum.spectrum)
         } else {
-            newResults.previousFramePosition = -1
+            newResults.previousFramePosition = -1L
         }
     }
 

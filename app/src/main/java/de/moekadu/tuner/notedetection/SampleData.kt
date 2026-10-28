@@ -28,7 +28,7 @@ import kotlin.math.min
  * @param sampleRate Sample rate in Hertz
  * @param framePosition Position of first frame in data
  */
-class SampleData(val size: Int, val sampleRate: Int, var framePosition: Int) {
+class SampleData(val size: Int, val sampleRate: Int, var framePosition: Long) {
     /** Here we store the data. */
     val data = FloatArray(size)
 
@@ -45,7 +45,7 @@ class SampleData(val size: Int, val sampleRate: Int, var framePosition: Int) {
     /** Empty object and set new frame position.
      * @param framePosition New frame position.
      */
-    fun reset(framePosition: Int) {
+    fun reset(framePosition: Long) {
         this.framePosition = framePosition
         minLevel = Int.MAX_VALUE
         maxLevel = 0
@@ -55,9 +55,9 @@ class SampleData(val size: Int, val sampleRate: Int, var framePosition: Int) {
      * @param inputFramePosition Frame position of first entry in input-array
      * @param input Input data, which should be copied to our local data object.
      */
-    fun addData(inputFramePosition: Int, input: FloatArray) {
-        val startIndexData = max(0, inputFramePosition - framePosition)
-        val startIndexInput = max(0, framePosition - inputFramePosition)
+    fun addData(inputFramePosition: Long, input: FloatArray) {
+        val startIndexData = max(0, (inputFramePosition - framePosition).toInt())
+        val startIndexInput = max(0, (framePosition - inputFramePosition).toInt())
 
         val numCopy = min(size - startIndexData, input.size - startIndexInput)
         if (numCopy > 0) {
@@ -73,9 +73,9 @@ class SampleData(val size: Int, val sampleRate: Int, var framePosition: Int) {
      * @param inputFramePosition Frame position of first entry in input-array
      * @param input Input data, which should be copied to our local data object.
      */
-    fun addData(inputFramePosition: Int, input: ShortArray) {
-        val startIndexData = max(0, inputFramePosition - framePosition)
-        val startIndexInput = max(0, framePosition - inputFramePosition)
+    fun addData(inputFramePosition: Long, input: ShortArray) {
+        val startIndexData = max(0, (inputFramePosition - framePosition).toInt())
+        val startIndexInput = max(0, (framePosition - inputFramePosition).toInt())
         val factor = 1f / Short.MAX_VALUE
         val numCopy = min(size - startIndexData, input.size - startIndexInput)
         if (numCopy > 0) {
@@ -92,7 +92,7 @@ class SampleData(val size: Int, val sampleRate: Int, var framePosition: Int) {
 class MemoryPoolSampleData(capacity: Int) {
     private val pool = MemoryPool<SampleData>(capacity)
 
-    fun get(size: Int, sampleRate: Int, framePosition: Int) = pool.get(
+    fun get(size: Int, sampleRate: Int, framePosition: Long) = pool.get(
         factory = { SampleData(size, sampleRate, framePosition) },
         checker = { it.size == size && it.sampleRate == sampleRate }
     ).apply { memory.reset(framePosition) }

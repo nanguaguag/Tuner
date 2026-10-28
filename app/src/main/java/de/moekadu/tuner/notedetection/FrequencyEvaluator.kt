@@ -35,7 +35,7 @@ data class FrequencyEvaluationResult(
     val smoothedFrequency: Float,
     val target: TuningTarget?,
     val timeSinceThereIsNoFrequencyDetectionResult: Float,
-    val framePosition: Int
+    val framePosition: Long
 )
 
 /** Postprocess frequency and find suitable target note.
@@ -74,16 +74,16 @@ class FrequencyEvaluator(
 
     private val tuningTargetComputer = TuningTargetComputer(musicalScale, instrument, toleranceInCents)
     private var currentTargetNote: MusicalNote? = null
-    private var timeStepOfLastSuccessfulFrequencyDetection = 0
+    private var timeStepOfLastSuccessfulFrequencyDetection = 0L
 
-    private var lastTime = 0
+    private var lastTime = 0L
 
     fun evaluate(
         frequencyCollectionResults: FrequencyDetectionCollectedResults?,
         userDefinedNote: MusicalNote?
     ): FrequencyEvaluationResult {
         var smoothedFrequency = 0f
-        var frequencyDetectionTimeStep = -1
+        var frequencyDetectionTimeStep = -1L
         var dt = -1f
 //        Log.v("Tuner", "FrequencyEvaluator.evaluate: frequencyCollectionResults = $frequencyCollectionResults")
         val newTarget = frequencyCollectionResults?.let {
@@ -118,7 +118,7 @@ class FrequencyEvaluator(
             currentTargetNote = it
         }
 
-        val time = frequencyCollectionResults?.timeSeries?.framePosition ?: 0
+        val time = frequencyCollectionResults?.timeSeries?.framePosition ?: 0L
 //        val diff = time - lastTime
         lastTime = time
 //        Log.v("Tuner", "FrequencyEvaluator.evaluate: time since last update = $diff")
