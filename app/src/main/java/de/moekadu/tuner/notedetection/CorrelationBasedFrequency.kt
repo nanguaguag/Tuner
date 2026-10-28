@@ -124,13 +124,13 @@ fun findCorrelationBasedFrequency(
         firstLocalMinimum
     }
 
-    if (globalIndexBegin >= globalIndexEnd) {
+    if (globalIndexBegin >= globalIndexEnd || correlation.size < 3) {
         results.set(0f, 0f, 0f)
         return
     }
 
     var globalMaximumIndex = 0
-    var maximumValue = Float.NEGATIVE_INFINITY
+    var maximumValue = 0f
 
     // find global maximum
     for (i in globalIndexBegin until globalIndexEnd) {
@@ -138,6 +138,11 @@ fun findCorrelationBasedFrequency(
             globalMaximumIndex = i
             maximumValue = correlation[i]
         }
+    }
+
+    if (globalMaximumIndex <= 0 || maximumValue <= 0f) {
+        results.set(0f, 0f, 0f)
+        return
     }
 
     var (fittedMaximumIndex, fittedPeak) = getPeakOfPolynomialFitArray(
@@ -182,6 +187,11 @@ fun findCorrelationBasedFrequency(
                 break
             }
         }
+    }
+
+    if (fittedMaximumIndex <= 0f) {
+        results.set(0f, 0f, 0f)
+        return
     }
 
     results.set(

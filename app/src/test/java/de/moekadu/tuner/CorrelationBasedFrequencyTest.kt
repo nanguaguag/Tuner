@@ -42,4 +42,17 @@ class CorrelationBasedFrequencyTest {
             subharmonicsTolerance = tolerance)
         Assert.assertEquals(1f / (dt * peak1.toFloat()), result3.frequency, 1e-6f)
     }
+
+    @Test
+    fun zeroOrNoPeakReturnsZeroFrequency() {
+        val numTotal = 1200
+        val dt = 0.1f
+        val correlation = AutoCorrelation(numTotal, dt)
+        correlation.values.fill(0f)
+
+        val result = CorrelationBasedFrequency(0f, 0f, 0f)
+        findCorrelationBasedFrequency(result, correlation)
+        Assert.assertEquals(0f, result.frequency, 1e-6f)
+        Assert.assertEquals(0f, result.timeShift, 1e-6f)
+    }
 }
