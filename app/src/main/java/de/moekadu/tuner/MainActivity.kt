@@ -63,9 +63,9 @@ import de.moekadu.tuner.temperaments.TemperamentResources
 import de.moekadu.tuner.temperaments.hasErrors
 import de.moekadu.tuner.temperaments.toTemperament3Custom
 import de.moekadu.tuner.ui.theme.TunerTheme
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -88,7 +88,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 //        Log.v("Tuner", "MainActivity2.onCreate: savedInstanceState = $savedInstanceState")
 
-        runBlocking {
+        lifecycleScope.launch(Dispatchers.IO) {
             migrateFromV6(this@MainActivity, pref, temperaments, instruments)
         }
 

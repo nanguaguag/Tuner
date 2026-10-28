@@ -43,7 +43,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -277,14 +276,6 @@ class PreferenceResources @Inject constructor (
             dataStore.edit {
                 it[key] = Json.encodeToString(value)
             }
-        }
-    }
-
-    init {
-        // block everything until all data is read to avoid incorrect startup behaviour
-        runBlocking {
-            dataStore.data.first()
-            // isMigratingFromV6 = this@PreferenceResources.migrateFromV6(context)
         }
     }
 

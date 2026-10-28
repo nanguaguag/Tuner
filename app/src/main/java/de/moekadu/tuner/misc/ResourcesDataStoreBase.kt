@@ -37,7 +37,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -105,12 +104,4 @@ class ResourcesDataStoreBase(
             it[key] = Json.encodeToString(value)
         }
     }
-
-    init {
-        // block everything until, all data is read to avoid incorrect startup behaviour
-        runBlocking {
-            dataStore.data.first()
-        }
-    }
-
 }
