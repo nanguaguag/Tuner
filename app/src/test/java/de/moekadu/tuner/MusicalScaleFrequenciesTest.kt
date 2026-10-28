@@ -185,4 +185,22 @@ class MusicalScaleFrequenciesTest {
         assertEquals(frequencyEnd5Check, frequencyEnd5.toDouble(), 1e-2)
 
     }
+
+    @Test
+    fun testExtremeFrequenciesDoNotThrowException() {
+        val cents = (0..1200 step 100).map { it.toDouble() }.toDoubleArray()
+        val frequencies = MusicalScaleFrequencies.create(
+            cents,
+            0,
+            440f,
+            20f,
+            20000f,
+            stretchTuning = StretchTuning()
+        )
+        // NaN, negative, zero, infinity should not throw RuntimeException
+        frequencies.getFrequencyIndex(Float.NaN)
+        frequencies.getFrequencyIndex(0f)
+        frequencies.getFrequencyIndex(-100f)
+        frequencies.getFrequencyIndex(Float.POSITIVE_INFINITY)
     }
+}

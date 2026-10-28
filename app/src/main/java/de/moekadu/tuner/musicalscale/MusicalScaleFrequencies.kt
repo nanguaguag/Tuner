@@ -93,6 +93,8 @@ class MusicalScaleFrequencies(
     fun getFrequencyIndex(frequency: Float): Float {
         if (frequencies.isEmpty())
             return 0f
+        if (frequency.isNaN() || frequency <= 0f)
+            return getClosestFrequencyIndex(frequency).toFloat()
 
         val closestIndex = getClosestFrequencyIndex(frequency)
         val closestFrequency = get(closestIndex)
@@ -104,7 +106,7 @@ class MusicalScaleFrequencies(
         else if (closestIndex < indexEnd - 1 && (frequency > closestFrequency || closestIndex == indexStart))
             closestIndex + log10(closestFrequency / frequency) / log10(closestFrequency / get(closestIndex + 1))
         else
-            throw RuntimeException("cannot find tone index")
+            closestIndex.toFloat()
     }
     /** Get closest note index to a given frequency.
      * @param frequency Frequency.
