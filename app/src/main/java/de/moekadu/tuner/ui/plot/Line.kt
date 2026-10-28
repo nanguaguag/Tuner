@@ -56,49 +56,32 @@ import kotlin.random.Random
 
 
 class LineCoordinates(
-    val coordinates: MutableList<Offset> = mutableListOf()
+    val coordinates: List<Offset> = emptyList()
 ) {
     val size get() = coordinates.size
 
     fun mutate(size: Int, x: (i: Int) -> Float, y: (i: Int) -> Float): LineCoordinates {
-        return if (this.size == size) {
-            for (i in 0 until size)
-                coordinates[i] = Offset(x(i), y(i))
-            LineCoordinates(coordinates)
-        } else {
-            create(size, x, y)
-        }
+        return create(size, x, y)
     }
 
     fun mutate(x: FloatArray, y: FloatArray): LineCoordinates {
-        return if (x.size == size) {
-            for (i in 0 until size)
-                coordinates[i] = Offset(x[i], y[i])
-            LineCoordinates(coordinates)
-        } else {
-            create(x, y)
-        }
+        return create(x, y)
     }
 
     fun mutate(y: FloatArray): LineCoordinates {
-        return if (coordinates.size == size) {
-            for (i in 0 until size)
-                coordinates[i] = Offset(i.toFloat(), y[i])
-            LineCoordinates(coordinates)
-        } else {
-            create(y)
-        }
+        return create(y)
     }
 
     companion object {
         fun create(size: Int, x: (i: Int) -> Float, y: (i: Int) -> Float): LineCoordinates {
-            return LineCoordinates(MutableList(size){ Offset(x(it), y(it)) })
+            return LineCoordinates(List(size) { Offset(x(it), y(it)) })
         }
         fun create(x: FloatArray, y: FloatArray): LineCoordinates {
-            return LineCoordinates(MutableList(x.size){ Offset(x[it], y[it]) })
+            val len = min(x.size, y.size)
+            return LineCoordinates(List(len) { Offset(x[it], y[it]) })
         }
         fun create(y: FloatArray): LineCoordinates {
-            return LineCoordinates(MutableList(y.size){ Offset(it.toFloat(), y[it]) })
+            return LineCoordinates(List(y.size) { Offset(it.toFloat(), y[it]) })
         }
     }
 }

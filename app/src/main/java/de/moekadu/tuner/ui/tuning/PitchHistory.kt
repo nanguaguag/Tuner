@@ -88,27 +88,27 @@ private fun computeToleranceBounds(centerFrequency: Float, toleranceInCents: Int
 }
 
 private class ResizeableArray(private var maxNumValues: Int) {
-    var values = LineCoordinates.create(floatArrayOf())
+    private val buffer = mutableListOf<Offset>()
+    var values = LineCoordinates(emptyList())
         private set
 
     val size get() = values.size
     fun add(value: Float) {
-        val c = values.coordinates
-        if (c.size == maxNumValues)
-            c.removeAt(0)
-        c.add(Offset(c.size.toFloat(), value))
-        for (i in 0 until c.size)
-            c[i] = c[i].copy(x = i.toFloat())
-        values = LineCoordinates(c)
+        if (buffer.size == maxNumValues && buffer.isNotEmpty())
+            buffer.removeAt(0)
+        buffer.add(Offset(buffer.size.toFloat(), value))
+        for (i in 0 until buffer.size)
+            buffer[i] = buffer[i].copy(x = i.toFloat())
+        values = LineCoordinates(buffer.toList())
     }
 
     fun resize(newMaxNumValues: Int) {
         maxNumValues = newMaxNumValues
-        val c = values.coordinates
-        //val resized = FloatArray(newMaxNumValues)
-        if (maxNumValues < c.size)
-            c.subList(0, c.size - maxNumValues).clear()
-        values = LineCoordinates(c)
+        if (maxNumValues < buffer.size)
+            buffer.subList(0, buffer.size - maxNumValues).clear()
+        for (i in 0 until buffer.size)
+            buffer[i] = buffer[i].copy(x = i.toFloat())
+        values = LineCoordinates(buffer.toList())
     }
 }
 
